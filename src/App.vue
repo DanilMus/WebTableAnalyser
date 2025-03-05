@@ -1,11 +1,16 @@
 <script setup>
 import TableChart from './components/TableChart.vue';
+import TableChart2 from './components/TableChart2.vue';
 </script>
 
 <template>
     <div>
-        <h1> График данных</h1>
+        <h1> График данных (echarts)</h1>
         <TableChart />
+    </div>
+    <div>
+        <h1>График данных (Chart.js)</h1>
+        <TableChart2 />
     </div>
 </template>
 
