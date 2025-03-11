@@ -17,14 +17,19 @@ const updateChart = () => {
     
     const option = {
         title: { text: "График данных" },
+        tooltip: {
+            trigger: "axis", // Включает всплывающую подсказку при наведении
+            axisPointer: { type: "line" } // Линия по оси X
+        },
         xAxis: { type: "category", data: props.chartData.map((row) => row.date) },
         yAxis: { type: "value" },
         series: Object.keys(props.chartData[0] || {})
             .filter((key) => key !== "date")
             .map((key) => ({
-                name: key,
+                name: key, // Название серии (будет отображаться в подсказке)
                 type: "line",
                 data: props.chartData.map((row) => row[key] || 0),
+                smooth: true, // Делаем линии более плавными
             })),
     };
 
