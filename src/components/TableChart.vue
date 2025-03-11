@@ -1,53 +1,58 @@
 <script setup>
 import { defineProps, watch } from "vue";
-import * as echarts from "echarts";
+import * as echarts from "echarts"; // Импортируем библиотеку для построения графиков
 import { onMounted, ref } from "vue";
 
 const props = defineProps({ chartData: Array }); // Получаем данные через пропсы
-const chartRef = ref(null);
+const chartRef = ref(null); // Ссылка на div, внутри которого будет график
 
+
+// Обновление графика
 const updateChart = () => {
-    console.log("Обновление графика...");
-
+    // Проверяем, есть ли данные и ссылка на элемент графика
     if (!chartRef.value || !props.chartData.length) {
         console.log("Данных нет, график не обновляется.");
         return;
     }
-    const chart = echarts.init(chartRef.value);
-    
+
+    const chart = echarts.init(chartRef.value); // Инициализируем ECharts в div
+
     const option = {
-        title: { text: "График данных" },
+        title: { text: "График данных" }, // Заголовок графика
         tooltip: {
-            trigger: "axis", // Включает всплывающую подсказку при наведении
-            axisPointer: { type: "line" } // Линия по оси X
+            trigger: "axis", // Показываем всплывающую подсказку при наведении на ось X
+            axisPointer: { type: "line" } // Отображаем вертикальную линию при наведении
         },
-        xAxis: { type: "category", data: props.chartData.map((row) => row.date) },
-        yAxis: { type: "value" },
+        xAxis: { 
+            type: "category", // Ось X — категориальная (текстовые метки)
+            data: props.chartData.map((row) => row.date) // Берём даты из данных
+        },
+        yAxis: { type: "value" }, // Ось Y — числовая
+        legend: { show: true }, // Показываем легенду (названия линий на графике)
         series: Object.keys(props.chartData[0] || {})
-            .filter((key) => key !== "date")
+            .filter((key) => key !== "date") // Исключаем "date" из значений
             .map((key) => ({
-                name: key, // Название серии (будет отображаться в подсказке)
-                type: "line",
-                data: props.chartData.map((row) => row[key] || 0),
-                smooth: true, // Делаем линии более плавными
+                name: key, // Название линии в легенде
+                type: "line", // График линейный
+                data: props.chartData.map((row) => row[key] || 0), // Данные по оси Y
+                smooth: true, // Делаем линии плавными
             })),
     };
 
     console.log("Опции графика:", option);
-    chart.clear(); // Очищаем предыдущий график
-    chart.setOption(option);
+
+    chart.clear(); // Очищаем предыдущий график перед обновлением
+    chart.setOption(option); // Устанавливаем новые данные
 };
 
 // Обновлять график при изменении данных
-watch(() => props.chartData, (newData) => {
-    console.log("Новые данные для графика:", newData);
+watch(() => props.chartData, () => {
     updateChart();
 }, { deep: true });
 
 
 onMounted(() => {
-    console.log("chartRef:", chartRef.value);
-    updateChart();
+    updateChart(); // Строим график при первом рендере
 });
 </script>
 

@@ -5,12 +5,8 @@ export function loadCSVData(csvPath) {
     return fetch(csvPath)
         .then((response) => response.text())
         .then((csvText) => {
-            console.log("CSV текст:", csvText);
-            const { data } = Papa.parse(csvText, { header: true });
-            if (data.length > 0) {
-                console.log("Первая строка данных:", data[0]);
-            }
-            return processData(data);
+            const { data } = Papa.parse(csvText, { header: true }); // сам парсинг данных
+            return processData(data); // отправка на обработку
         })
         .catch((error) => console.error("Ошибка загрузки CSV:", error));
 }
@@ -31,7 +27,7 @@ export function processData(data) {
                 if (!isNaN(value) && value !== "") {
                     parsedRow[col] = Number(value); // Число
                 } else {
-                    parsedRow[col] = countParagraphs(value); // Подсчет абзацев
+                    parsedRow[col] = countParagraphs(value); // Строка и производим Подсчет абзацев
                 }
             });
             return parsedRow;
