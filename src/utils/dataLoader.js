@@ -5,6 +5,7 @@ export function loadCSVData(csvPath) {
     return fetch(csvPath)
         .then((response) => response.text())
         .then((csvText) => {
+            console.log("CSV текст:", csvText);
             const { data } = Papa.parse(csvText, { header: true });
             if (data.length > 0) {
                 console.log("Первая строка данных:", data[0]);
@@ -15,7 +16,7 @@ export function loadCSVData(csvPath) {
 }
 
 // Функция обработки данных
-function processData(data) {
+export function processData(data) {
     if (data.length === 0) return [];
 
     const headers = Object.keys(data[0]); // Заголовки столбцов
@@ -24,8 +25,7 @@ function processData(data) {
     return data
         .filter((row) => row[dateColumn]?.trim()) // Убираем строки с пустой датой
         .map((row) => {
-            const parsedRow = {};
-            parsedRow.date = row[dateColumn]; // Дата
+            const parsedRow = { date: row[dateColumn] }; // Дата
             headers.slice(1).forEach((col) => {
                 const value = row[col];
                 if (!isNaN(value) && value !== "") {
@@ -38,7 +38,7 @@ function processData(data) {
         });
 }
 
-// Функция подсчёта новых строк (абзацев) в текстовых данных
-function countParagraphs(text) {
+// Функция подсчёта новых строк (абзацев)
+export function countParagraphs(text) {
     return text ? text.split(/\n+/).length : 0;
 }

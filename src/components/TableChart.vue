@@ -1,44 +1,51 @@
 <script setup>
-import { ref, onMounted, nextTick } from "vue";
+import { defineProps, watch } from "vue";
 import * as echarts from "echarts";
-import { loadCSVData } from "@/utils/dataLoader.js"; // Функция загрузки данных
+import { onMounted, ref } from "vue";
 
+const props = defineProps({ chartData: Array }); // Получаем данные через пропсы
 const chartRef = ref(null);
-const chartData = ref([]); // Данные после обработки
 
-onMounted(async () => {
-    // Загружаем и обрабатываем данные
-    chartData.value = await loadCSVData("Diary.csv");
-    if (chartData.value.length > 0) {
-        console.log("Обработанная строка данных:", JSON.parse(JSON.stringify(chartData.value[0])));
+const updateChart = () => {
+    console.log("Обновление графика...");
+
+    if (!chartRef.value || !props.chartData.length) {
+        console.log("Данных нет, график не обновляется.");
+        return;
     }
+    const chart = echarts.init(chartRef.value);
+    
+    const option = {
+        title: { text: "График данных" },
+        xAxis: { type: "category", data: props.chartData.map((row) => row.date) },
+        yAxis: { type: "value" },
+        series: Object.keys(props.chartData[0] || {})
+            .filter((key) => key !== "date")
+            .map((key) => ({
+                name: key,
+                type: "line",
+                data: props.chartData.map((row) => row[key] || 0),
+            })),
+    };
 
-    nextTick(() => {
-        if (!chartRef.value || chartData.value.length === 0) return;
+    console.log("Опции графика:", option);
+    chart.clear(); // Очищаем предыдущий график
+    chart.setOption(option);
+};
 
-        const chart = echarts.init(chartRef.value);
+// Обновлять график при изменении данных
+watch(() => props.chartData, (newData) => {
+    console.log("Новые данные для графика:", newData);
+    updateChart();
+}, { deep: true });
 
-        // Достаем даты и числовые данные
-        const labels = chartData.value.map(row => row.date);
-        const numericKeys = Object.keys(chartData.value[0]).filter(key => key !== "date");
 
-        const series = numericKeys.map(key => ({
-            name: key,
-            type: "line",
-            data: chartData.value.map(row => row[key]),
-        }));
-
-        chart.setOption({
-            title: { text: "График из CSV" },
-            tooltip: { trigger: "axis" },
-            xAxis: { type: "category", data: labels },
-            yAxis: { type: "value" },
-            series,
-        });
-    });
+onMounted(() => {
+    console.log("chartRef:", chartRef.value);
+    updateChart();
 });
 </script>
 
 <template>
-    <div ref="chartRef" style="width: 100%; height: 400px;"></div>
+  <div ref="chartRef" style="width: 100%; height: 400px;"></div>
 </template>
