@@ -1,10 +1,12 @@
 <script setup>
-import { defineProps, watch, computed } from "vue";
+import { defineProps, watch, computed, nextTick } from "vue";
 import * as echarts from "echarts"; // Импортируем библиотеку для построения графиков
 import { onMounted, ref } from "vue";
-import dayjs from "dayjs"; // Для работы с датами
-import isBetween from "dayjs/plugin/isBetween";
-dayjs.extend(isBetween);
+// Для работы с датами
+import { parse, isValid, isWithinInterval, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, subQuarters, startOfYear, endOfYear, subYears } from "date-fns";
+
+
+
 
 const props = defineProps({ chartData: Array }); // Получаем данные через пропсы
 const chartRef = ref(null); // Ссылка на div, внутри которого будет график
@@ -20,65 +22,58 @@ const availableColumns = computed(() => {
 // Фильтрация данных по выбранному периоду
 const filteredData = computed(() => {
     if (!props.chartData.length) return [];
+
     if (selectedPeriod.value === "all") return props.chartData;
 
-    const now = dayjs();
+    const now = new Date();
     let startDate, endDate;
 
     switch (selectedPeriod.value) {
         case "this_week":
-            startDate = now.startOf("week");
-            endDate = now.endOf("week");
+            startDate = startOfWeek(now, { weekStartsOn: 1 });
+            endDate = endOfWeek(now, { weekStartsOn: 1 });
             break;
         case "last_week":
-            startDate = now.subtract(1, "week").startOf("week");
-            endDate = now.subtract(1, "week").endOf("week");
+            startDate = startOfWeek(subWeeks(now, 1), { weekStartsOn: 1 });
+            endDate = endOfWeek(subWeeks(now, 1), { weekStartsOn: 1 });
             break;
         case "this_month":
-            startDate = now.startOf("month");
-            endDate = now.endOf("month");
+            startDate = startOfMonth(now);
+            endDate = endOfMonth(now);
             break;
         case "last_month":
-            startDate = now.subtract(1, "month").startOf("month");
-            endDate = now.subtract(1, "month").endOf("month");
+            startDate = startOfMonth(subMonths(now, 1));
+            endDate = endOfMonth(subMonths(now, 1));
             break;
         case "this_quarter":
-            startDate = now.startOf("quarter");
-            endDate = now.endOf("quarter");
+            startDate = startOfQuarter(now);
+            endDate = endOfQuarter(now);
             break;
         case "last_quarter":
-            startDate = now.subtract(1, "quarter").startOf("quarter");
-            endDate = now.subtract(1, "quarter").endOf("quarter");
+            startDate = startOfQuarter(subQuarters(now, 1));
+            endDate = endOfQuarter(subQuarters(now, 1));
             break;
         case "this_year":
-            startDate = now.startOf("year");
-            endDate = now.endOf("year");
+            startDate = startOfYear(now);
+            endDate = endOfYear(now);
             break;
         case "last_year":
-            startDate = now.subtract(1, "year").startOf("year");
-            endDate = now.subtract(1, "year").endOf("year");
+            startDate = startOfYear(subYears(now, 1));
+            endDate = endOfYear(subYears(now, 1));
             break;
         default:
             return props.chartData;
     }
 
     return props.chartData.filter((row) => {
-        const date = dayjs(row.date);
-        return date.isBetween(startDate, endDate, null, "[]");
+        const date = parse(row.date, "dd.MM.yyyy", new Date());
+        return isValid(date) && isWithinInterval(date, { start: startDate, end: endDate });
     });
 });
 
-// Следим за тем, загружена ли новая таблица для анализа или нет
-watch(() => props.chartData, (newData) => {
-    if (newData.length) {
-        selectedColumns.value = [...availableColumns.value]; // Включаем все столбцы
-    }
-    updateChart();
-}, { deep: true });
-
 
 // Обновление графика
-const updateChart = () => {
+const updateChart = async () => {
     // Проверяем, есть ли данные и ссылка на элемент графика
     if (!chartRef.value || !filteredData.value.length) {
         console.log("Данных нет, график не обновляется.");
@@ -107,19 +102,23 @@ const updateChart = () => {
         })),
     };
 
+    await nextTick(); // Ждем обновления реактивных данных
     chart.clear(); // Очищаем предыдущий график перед обновлением
     chart.setOption(option); // Устанавливаем новые данные
 };
 
-// Следим за изменением выбранного периода и обновляем график
-watch(selectedPeriod, () => {
-    console.log("Выбранный период изменён:", selectedPeriod.value);
+// Следим за тем, загружена ли новая таблица для анализа или нет
+watch(() => props.chartData, (newData) => {
+    if (newData.length) {
+        selectedColumns.value = [...availableColumns.value]; // Включаем все столбцы
+        updateChart();
+    }
+}, { deep: true });
+
+// Следим за изменением периода и столбцов
+watch([selectedPeriod, selectedColumns], () => {
     updateChart();
-});
-
-
-// Следим за изменением выбранных столбцов и обновляем график
-watch(selectedColumns, updateChart, { deep: true });
+}, { deep: true });
 
 // Строим график при первом рендере
 onMounted(updateChart);
@@ -127,6 +126,7 @@ onMounted(updateChart);
 
 <template>
     <div>
+        <!-- Кнопки для выбора периода -->
         <div class="filters">
             <button @click="selectedPeriod = 'this_week'">Эта неделя</button>
             <button @click="selectedPeriod = 'last_week'">Прошлая неделя</button>
@@ -138,15 +138,18 @@ onMounted(updateChart);
             <button @click="selectedPeriod = 'last_year'">Прошлый год</button>
             <button @click="selectedPeriod = 'all'">Весь период</button>
         </div>
-
+        
+        <!-- Секция выбора столбцов и графика-->
         <div>
+            <!-- Перебор доступных столбцов -->
             <div class="column-selector">
                 <label v-for="column in availableColumns" :key="column">
                     <input type="checkbox" v-model="selectedColumns" :value="column" />
                     {{ column }}
                 </label>
             </div>
-
+            
+            <!-- График -->
             <div ref="chartRef" style="width: 100%; height: 400px;"></div>
         </div>
     </div>
@@ -154,21 +157,27 @@ onMounted(updateChart);
 
 
 <style scoped>
+/* Стили для фильтров */
 .filters {
     margin-bottom: 10px;
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
 }
+
+/* Стили для кнопок */
 button {
     padding: 5px 10px;
     border: 1px solid #ccc;
     background: #f8f8f8;
     cursor: pointer;
 }
+
+/* Эффект при наведении на кнопку */
 button:hover {
     background: #e0e0e0;
 }
+
 .column-selector {
     margin-bottom: 10px;
     display: flex;
