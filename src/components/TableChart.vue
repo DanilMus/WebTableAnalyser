@@ -1,11 +1,9 @@
 <script setup>
-import { defineProps, watch, computed, nextTick } from "vue";
-import * as echarts from "echarts"; // Импортируем библиотеку для построения графиков
-import { onMounted, ref } from "vue";
-// Для работы с датами
-import { parse, isValid, isWithinInterval, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, subQuarters, startOfYear, endOfYear, subYears } from "date-fns";
+import { defineProps, watch, computed, ref } from "vue";
+import { parse, isValid, isWithinInterval, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, subQuarters, startOfYear, endOfYear, subYears } from "date-fns"; // Для работы с датами
 
-
+// Свои модули
+import { updateChart } from "@/utils/chartBuilder.js";
 
 
 const props = defineProps({ chartData: Array }); // Получаем данные через пропсы
@@ -72,57 +70,21 @@ const filteredData = computed(() => {
 });
 
 
-// Обновление графика
-const updateChart = async () => {
-    // Проверяем, есть ли данные и ссылка на элемент графика
-    if (!chartRef.value || !filteredData.value.length) {
-        console.log("Данных нет, график не обновляется.");
-        return;
-    }
-
-    const chart = echarts.init(chartRef.value); // Инициализируем ECharts в div
-
-    const option = {
-        title: { text: "График данных" }, // Заголовок графика
-        tooltip: {
-            trigger: "axis", // Показываем всплывающую подсказку при наведении на ось X
-            axisPointer: { type: "line" } // Отображаем вертикальную линию при наведении
-        },
-        xAxis: { 
-            type: "category", // Ось X — категориальная (текстовые метки)
-            data: filteredData.value.map((row) => row.date) // Берём даты из данных
-        },
-        yAxis: { type: "value" }, // Ось Y — числовая
-        legend: { show: true }, // Показываем легенду (названия линий на графике)
-        series: selectedColumns.value.map((key) => ({
-                name: key, // Название линии в легенде
-                type: "line", // График линейный
-                data: filteredData.value.map((row) => row[key] || 0), // Данные по оси Y
-                smooth: true, // Делаем линии плавными
-        })),
-    };
-
-    await nextTick(); // Ждем обновления реактивных данных
-    chart.clear(); // Очищаем предыдущий график перед обновлением
-    chart.setOption(option); // Устанавливаем новые данные
-};
-
 // Следим за тем, загружена ли новая таблица для анализа или нет
 watch(() => props.chartData, (newData) => {
     if (newData.length) {
         selectedColumns.value = [...availableColumns.value]; // Включаем все столбцы
-        updateChart();
+        updateChart(chartRef, filteredData, selectedColumns);
     }
 }, { deep: true });
 
 // Следим за изменением периода и столбцов
 watch([selectedPeriod, selectedColumns], () => {
-    updateChart();
+    updateChart(chartRef, filteredData, selectedColumns);
 }, { deep: true });
-
-// Строим график при первом рендере
-onMounted(updateChart);
 </script>
+
+
 
 <template>
     <div>
@@ -154,7 +116,6 @@ onMounted(updateChart);
         </div>
     </div>
 </template>
-
 
 <style scoped>
 /* Стили для фильтров */
