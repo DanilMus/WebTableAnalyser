@@ -1,9 +1,8 @@
 <script setup>
 import { defineProps, watch, computed, ref } from "vue";
-import { parse, isValid, isWithinInterval, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, subQuarters, startOfYear, endOfYear, subYears } from "date-fns"; // Для работы с датами
 
 // Свои модули
-import { updateChart } from "@/utils/chartBuilder.js";
+import { updateChart, getAvailableColumns, filterDataPeriod } from "@/utils/chartBuilder.js";
 
 
 const props = defineProps({ chartData: Array }); // Получаем данные через пропсы
@@ -12,75 +11,23 @@ const selectedColumns = ref([]); // Храним список включённы
 const selectedPeriod = ref("all"); // Выбранный временной диапазон
 
 // Вычисляем доступные столбцы (исключая "date")
-const availableColumns = computed(() => {
-    if (!props.chartData.length) return [];
-    return Object.keys(props.chartData[0]).filter((key) => key !== "date");
-});
+const availableColumns = computed(() => getAvailableColumns(props.chartData));
 
 // Фильтрация данных по выбранному периоду
-const filteredData = computed(() => {
-    if (!props.chartData.length) return [];
-
-    if (selectedPeriod.value === "all") return props.chartData;
-
-    const now = new Date();
-    let startDate, endDate;
-
-    switch (selectedPeriod.value) {
-        case "this_week":
-            startDate = startOfWeek(now, { weekStartsOn: 1 });
-            endDate = endOfWeek(now, { weekStartsOn: 1 });
-            break;
-        case "last_week":
-            startDate = startOfWeek(subWeeks(now, 1), { weekStartsOn: 1 });
-            endDate = endOfWeek(subWeeks(now, 1), { weekStartsOn: 1 });
-            break;
-        case "this_month":
-            startDate = startOfMonth(now);
-            endDate = endOfMonth(now);
-            break;
-        case "last_month":
-            startDate = startOfMonth(subMonths(now, 1));
-            endDate = endOfMonth(subMonths(now, 1));
-            break;
-        case "this_quarter":
-            startDate = startOfQuarter(now);
-            endDate = endOfQuarter(now);
-            break;
-        case "last_quarter":
-            startDate = startOfQuarter(subQuarters(now, 1));
-            endDate = endOfQuarter(subQuarters(now, 1));
-            break;
-        case "this_year":
-            startDate = startOfYear(now);
-            endDate = endOfYear(now);
-            break;
-        case "last_year":
-            startDate = startOfYear(subYears(now, 1));
-            endDate = endOfYear(subYears(now, 1));
-            break;
-        default:
-            return props.chartData;
-    }
-
-    return props.chartData.filter((row) => {
-        const date = parse(row.date, "dd.MM.yyyy", new Date());
-        return isValid(date) && isWithinInterval(date, { start: startDate, end: endDate });
-    });
-});
+const filteredDataPeriod = computed(() => filterDataPeriod(props.chartData, selectedPeriod));
 
 
 // Следим за тем, загружена ли новая таблица для анализа или нет
 watch(() => props.chartData, (newData) => {
     if (newData.length) {
         selectedColumns.value = [...availableColumns.value]; // Включаем все столбцы
-        updateChart(chartRef, filteredData, selectedColumns);
+        updateChart(chartRef, filteredDataPeriod, selectedColumns);
     }
 }, { deep: true });
 
 // Следим за изменением периода и столбцов
 watch([selectedPeriod, selectedColumns], () => {
-    updateChart(chartRef, filteredData, selectedColumns);
+    updateChart(chartRef, filteredDataPeriod, selectedColumns);
 }, { deep: true });
 </script>
 
