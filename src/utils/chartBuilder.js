@@ -203,3 +203,66 @@ export const updateSummaryChart = async (summaryChartRef, filteredDataPeriod, se
     chart.clear();
     chart.setOption(option);
 };
+
+
+/**
+ * Обновляет диаграмму процентных изменений для выбранных столбцов.
+ * Для каждого столбца вычисляется процентное изменение между последним и предпоследним значениями.
+ * Если предыдущие данные равны 0 или отсутствуют, процентное изменение считается равным 0.
+ * @param {HTMLElement} changeChartRef - Ссылка на DOM-элемент для диаграммы процентных изменений
+ * @param {Array} filteredDataPeriod - Отфильтрованные данные для графика
+ * @param {Array} selectedColumns - Выбранные столбцы для отображения
+ * @param {Object} [notify] - Объект уведомлений
+ */
+export const updatePercentChangeChart = async (changeChartRef, filteredDataPeriod, selectedColumns, notify) => {
+    if (!changeChartRef.value) {
+        console.error("changeChartRef не инициализирован.");
+        return;
+    }
+
+    if (filteredDataPeriod.value.length < 2) {
+        if (notify) notify.error("Недостаточно данных для вычисления процентных изменений.");
+        else console.log("Нет данных для вычисления процентных изменений.");
+        return;
+    }
+
+    // Используем данные без сортировки (предполагается, что они уже хронологические)
+    const data = filteredDataPeriod.value;
+    const xData = data.slice(1).map(row => row.date); // Даты начиная со второй записи
+
+    const series = selectedColumns.value.map(column => ({
+        name: column,
+        type: "line",
+        data: data.slice(1).map((row, index) => {
+            const prev = Number(data[index][column]) || 0;
+            const curr = Number(row[column]) || 0;
+            return prev !== 0 ? (curr / prev) * 100 : 0;
+        }),
+        smooth: true
+    }));
+
+    const chart = echarts.init(changeChartRef.value);
+    const option = {
+        tooltip: {
+            trigger: "axis",
+            formatter: function(params) {
+                return params.map(p => `${p.seriesName}: ${p.value.toFixed(2)}%`).join("<br/>");
+            }
+        },
+        xAxis: {
+            type: "category",
+            data: xData
+        },
+        yAxis: {
+            type: "value",
+            axisLabel: {
+                formatter: "{value}%"
+            }
+        },
+        series: series
+    };
+
+    await nextTick();
+    chart.clear();
+    chart.setOption(option);
+};
