@@ -1,7 +1,7 @@
 <script setup>
 import { ref, defineEmits } from "vue";
 import Papa from "papaparse"; // Библиотека для разбора CSV-файлов
-import { processData } from "@/utils/dataLoader.js"; // Импортируем функцию обработки данных
+import { processData, validateCSVData } from "@/utils/dataLoader.js"; // Импортируем функцию обработки данных
 
 const emit = defineEmits(["fileLoaded"]); // Определяем событие, которое будет отправляться в App.vue
 const fileInput = ref(null); // Создаём реактивную переменную для хранения ссылки на input (файл)
@@ -11,13 +11,24 @@ const handleFileUpload = (event) => {
     const file = event.target.files[0]; 
     if (!file) return; // Если файл не выбран, выходим
 
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+        alert("Пожалуйста, выберите CSV файл.");
+        return;
+    }
+
     const reader = new FileReader(); // Создаём объект для чтения файла
     reader.onload = (e) => {
         const csvText = e.target.result; // Получаем содержимое файла в виде текста
-        
-        // Используем PapaParse для разбора CSV в массив объектов
-        const { data } = Papa.parse(csvText, { header: true });
+        const { data } = Papa.parse(csvText, { header: true }); // Используем PapaParse для разбора CSV в массив объектов
 
+        // Валидируем CSV данные (проверка первого столбца)
+        try {
+            validateCSVData(data);
+        } catch (error) {
+            alert(error.message);
+            return;
+        }
+        
         // Обрабатываем данные перед отправкой
         const processedData = processData(data);
 

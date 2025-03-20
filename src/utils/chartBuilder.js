@@ -87,7 +87,7 @@ export const updateChart = async (chartRef, filteredDataPeriod, selectedColumns,
         return;
     }
     if (!filteredDataPeriod.value.length) {
-        if (notify) notify.info("Данных нет, график не обновляется.");
+        if (notify) notify.error("Данных нет, график не обновляется.");
         else console.log("Данных нет, график не обновляется.");
         return;
     }
