@@ -27,7 +27,7 @@ export const getAvailableColumns = (chartData) => {
 export const filterDataPeriod = (chartData, period) => {
     if (!chartData.length) return [];
     if (period === "all") return chartData;
-
+    
     const now = new Date();
     let startDate, endDate;
 

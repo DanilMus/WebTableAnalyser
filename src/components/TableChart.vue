@@ -14,7 +14,7 @@ const selectedPeriod = ref("all"); // Выбранный временной ди
 const availableColumns = computed(() => getAvailableColumns(props.chartData));
 
 // Фильтрация данных по выбранному периоду
-const filteredDataPeriod = computed(() => filterDataPeriod(props.chartData, selectedPeriod));
+const filteredDataPeriod = computed(() => filterDataPeriod(props.chartData, selectedPeriod.value));
 
 
 // Следим за тем, загружена ли новая таблица для анализа или нет
