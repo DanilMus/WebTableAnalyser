@@ -79,6 +79,7 @@ export const filterDataPeriod = (chartData, period) => {
  * @param {HTMLElement} chartRef - Ссылка на DOM-элемент для графика
  * @param {Array} filteredDataPeriod - Отфильтрованные данные для графика
  * @param {Array} selectedColumns - Выбранные столбцы для отображения
+ * @param {Object} [notify] - Объект уведомлений
  */
 export const updateChart = async (chartRef, filteredDataPeriod, selectedColumns, notify) => {
     // Проверяем, есть ли данные и ссылка на элемент графика
@@ -116,4 +117,89 @@ export const updateChart = async (chartRef, filteredDataPeriod, selectedColumns,
     await nextTick(); // Ждем обновления реактивных данных
     chart.clear(); // Очищаем предыдущий график перед обновлением
     chart.setOption(option); // Устанавливаем новые данные
+};
+
+
+/**
+ * Обновляет диаграмму сводки (min, avg, max) для выбранных столбцов
+ * @param {HTMLElement} summaryChartRef - Ссылка на DOM-элемент для сводной диаграммы
+ * @param {Array} filteredDataPeriod - Отфильтрованные данные для графика
+ * @param {Array} selectedColumns - Выбранные столбцы для отображения
+ * @param {Object} [notify] - Объект уведомлений
+ */
+export const updateSummaryChart = async (summaryChartRef, filteredDataPeriod, selectedColumns, notify) => {
+    if (!summaryChartRef.value) {
+        console.error("summaryChartRef не инициализирован.");
+        return;
+    }
+
+    const stats = {};
+    selectedColumns.value.forEach(col => {
+        const values = filteredDataPeriod.value
+            .map((row) => row[col])
+            .filter((val) => typeof val === "number");
+
+        if (values.length) {
+            stats[col] = {
+                min: Math.min(...values),
+                max: Math.max(...values),
+                avg: values.reduce((sum, v) => sum + v, 0) / values.length
+            };
+        }
+    });
+
+    const columns = Object.keys(stats);
+    if (!columns.length) {
+        if (notify) notify.error("Нет данных для сводной диаграммы.");
+        else console.log("Нет данных для сводной диаграммы.");
+        return;
+    }
+
+    const minValues = [];
+    const avgValues = [];
+    const maxValues = [];
+    
+    columns.forEach(col => {
+        minValues.push(stats[col].min);
+        avgValues.push(stats[col].avg);
+        maxValues.push(stats[col].max);
+    });
+    
+    const chart = echarts.init(summaryChartRef.value);
+    
+    const option = {
+        tooltip: {
+            trigger: "axis",
+            axisPointer: { type: "shadow" }
+        },
+        xAxis: {
+            type: "category",
+            data: columns,
+            axisTick: { alignWithLabel: true }
+        },
+        yAxis: {
+            type: "value"
+        },
+        series: [
+            {
+                name: "Min",
+                type: "bar",
+                data: minValues
+            },
+            {
+                name: "Avg",
+                type: "bar",
+                data: avgValues
+            },
+            {
+                name: "Max",
+                type: "bar",
+                data: maxValues
+            }
+        ]
+    };
+    
+    await nextTick();
+    chart.clear();
+    chart.setOption(option);
 };

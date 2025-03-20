@@ -2,17 +2,20 @@
 import { defineProps, watch, computed, ref } from "vue";
 import { useToast } from "vue-toastification"; // Импорт уведомлений
 // Свои модули
-import { updateChart, getAvailableColumns, filterDataPeriod } from "@/utils/chartBuilder.js";
+import { 
+    updateChart, updateSummaryChart,
+    getAvailableColumns, filterDataPeriod 
+} 
+from "@/utils/chartBuilder.js";
 
 const toast = useToast(); // Инициализация уведомлений
 const props = defineProps({ chartData: Array }); // Получаем данные через пропсы
 const chartRef = ref(null); // Ссылка на div, внутри которого будет график
 const selectedColumns = ref([]); // Храним список включённых столбцов (по умолчанию все)
+const summaryChartRef = ref(null); // Ссылка на контейнер диаграммы сводки
 const selectedPeriod = ref("all"); // Выбранный временной диапазон
-
 // Вычисляем доступные столбцы (исключая "date")
 const availableColumns = computed(() => getAvailableColumns(props.chartData));
-
 // Фильтрация данных по выбранному периоду
 const filteredDataPeriod = computed(() => filterDataPeriod(props.chartData, selectedPeriod.value));
 
@@ -22,12 +25,14 @@ watch(() => props.chartData, (newData) => {
     if (newData.length) {
         selectedColumns.value = [...availableColumns.value]; // Включаем все столбцы
         updateChart(chartRef, filteredDataPeriod, selectedColumns, toast);
+        updateSummaryChart(summaryChartRef, filteredDataPeriod, selectedColumns, toast);
     }
 }, { deep: true });
 
 // Следим за изменением периода и столбцов
 watch([selectedPeriod, selectedColumns], () => {
     updateChart(chartRef, filteredDataPeriod, selectedColumns, toast);
+    updateSummaryChart(summaryChartRef, filteredDataPeriod, selectedColumns, toast);
 }, { deep: true });
 </script>
 
@@ -61,6 +66,9 @@ watch([selectedPeriod, selectedColumns], () => {
             <!-- График -->
             <div ref="chartRef" style="width: 100%; height: 400px;"></div>
         </div>
+
+        <!-- Диаграмма сводки (min, avg, max) -->
+        <div ref="summaryChartRef" style="width: 100%; height: 400px; margin-top: 20px;"></div>
     </div>
 </template>
 
