@@ -21,8 +21,20 @@ const handleFileData = (data) => {
 </template>
 
 <style scoped>
+/* Основной контейнер */
+.app-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Заголовок */
 h1 {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 </style>

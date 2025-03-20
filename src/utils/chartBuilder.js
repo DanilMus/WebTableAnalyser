@@ -31,7 +31,7 @@ export const updateChart = async (chartRef, filteredData, selectedColumns) => {
             data: filteredData.value.map((row) => row.date) // Берём даты из данных
         },
         yAxis: { type: "value" }, // Ось Y — числовая
-        legend: { show: true }, // Показываем легенду (названия линий на графике)
+        legend: { show: false }, // Показываем легенду (названия линий на графике)
         series: selectedColumns.value.map((key) => ({
                 name: key, // Название линии в легенде
                 type: "line", // График линейный

@@ -31,12 +31,38 @@ const handleFileUpload = (event) => {
 
 <template>
     <div class="file-uploader">
-        <input type="file" ref="fileInput" accept=".csv" @change="handleFileUpload" />
+        <label for="fileInput">Загрузить CSV</label>
+        <input type="file" id="fileInput" ref="fileInput" accept=".csv" @change="handleFileUpload" />
     </div>
 </template>
 
 <style scoped>
 .file-uploader {
+    display: flex;
+    justify-content: center;
     margin-bottom: 20px;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+label {
+    padding: 10px 20px;
+    background: var(--primary-color);
+    color: var(--background-color);
+    border: 2px solid var(--primary-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+label:hover {
+    background: var(--background-color);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
 }
 </style>

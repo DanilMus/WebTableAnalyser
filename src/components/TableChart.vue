@@ -120,32 +120,65 @@ watch([selectedPeriod, selectedColumns], () => {
 <style scoped>
 /* Стили для фильтров */
 .filters {
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
+    gap: 10px;
+    justify-content: center;
 }
 
 /* Стили для кнопок */
 button {
-    padding: 5px 10px;
-    border: 1px solid #ccc;
-    background: #f8f8f8;
+    padding: 10px 15px;
+    border: 2px solid var(--primary-color);
+    background: var(--background-color);
+    color: var(--text-color);
     cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* Эффект при наведении на кнопку */
 button:hover {
-    background: #e0e0e0;
+    background: var(--primary-color);
+    color: var(--background-color);
+    border-color: var(--primary-color);
 }
 
+/* Секция выбора столбцов */
 .column-selector {
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 15px;
+    justify-content: center;
 }
-label {
+
+.column-selector label {
     cursor: pointer;
+    color: var(--text-color);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Стили для чекбоксов */
+input[type="checkbox"] {
+    accent-color: var(--primary-color);
+    width: 16px;
+    height: 16px;
+}
+
+/* График */
+.chart-container {
+    width: 100%;
+    height: 400px;
+    border: 2px solid var(--primary-color);
+    border-radius: 10px;
+    background: var(--background-color);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 </style>
