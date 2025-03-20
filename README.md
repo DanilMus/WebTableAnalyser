@@ -2,7 +2,7 @@
 
 ## Project setup
 ```
-npm install
+npm install echarts date-fns vue-toastification@next
 ```
 
 ### Compiles and hot-reloads for development
@@ -17,7 +17,7 @@ npm run build
 
 ### Lints and fixes files
 ```
-npm run lint
+npm run lint 
 ```
 
 ### Customize configuration

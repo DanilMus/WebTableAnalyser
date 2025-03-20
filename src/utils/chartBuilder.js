@@ -27,7 +27,7 @@ export const getAvailableColumns = (chartData) => {
 export const filterDataPeriod = (chartData, period) => {
     if (!chartData.length) return [];
     if (period === "all") return chartData;
-    
+
     const now = new Date();
     let startDate, endDate;
 
@@ -80,14 +80,15 @@ export const filterDataPeriod = (chartData, period) => {
  * @param {Array} filteredDataPeriod - Отфильтрованные данные для графика
  * @param {Array} selectedColumns - Выбранные столбцы для отображения
  */
-export const updateChart = async (chartRef, filteredDataPeriod, selectedColumns) => {
+export const updateChart = async (chartRef, filteredDataPeriod, selectedColumns, notify) => {
     // Проверяем, есть ли данные и ссылка на элемент графика
     if (!chartRef.value) {
         console.error("chartRef не инициализирован.");
         return;
     }
     if (!filteredDataPeriod.value.length) {
-        console.log("Данных нет, график не обновляется.");
+        if (notify) notify.info("Данных нет, график не обновляется.");
+        else console.log("Данных нет, график не обновляется.");
         return;
     }
 

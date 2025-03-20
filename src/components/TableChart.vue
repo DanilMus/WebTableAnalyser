@@ -1,10 +1,10 @@
 <script setup>
 import { defineProps, watch, computed, ref } from "vue";
-
+import { useToast } from "vue-toastification"; // Импорт уведомлений
 // Свои модули
 import { updateChart, getAvailableColumns, filterDataPeriod } from "@/utils/chartBuilder.js";
 
-
+const toast = useToast(); // Инициализация уведомлений
 const props = defineProps({ chartData: Array }); // Получаем данные через пропсы
 const chartRef = ref(null); // Ссылка на div, внутри которого будет график
 const selectedColumns = ref([]); // Храним список включённых столбцов (по умолчанию все)
@@ -21,13 +21,13 @@ const filteredDataPeriod = computed(() => filterDataPeriod(props.chartData, sele
 watch(() => props.chartData, (newData) => {
     if (newData.length) {
         selectedColumns.value = [...availableColumns.value]; // Включаем все столбцы
-        updateChart(chartRef, filteredDataPeriod, selectedColumns);
+        updateChart(chartRef, filteredDataPeriod, selectedColumns, toast);
     }
 }, { deep: true });
 
 // Следим за изменением периода и столбцов
 watch([selectedPeriod, selectedColumns], () => {
-    updateChart(chartRef, filteredDataPeriod, selectedColumns);
+    updateChart(chartRef, filteredDataPeriod, selectedColumns, toast);
 }, { deep: true });
 </script>
 
