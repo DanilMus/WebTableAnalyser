@@ -6,7 +6,7 @@ import {
     updateChart, updateSummaryChart, updatePercentChangeChart,
     getAvailableColumns, filterDataPeriod 
 } 
-from "@/utils/chartBuilder.js";
+from "@/utils/chartsBuilder.js";
 
 const toast = useToast(); // Инициализация уведомлений
 const props = defineProps({ chartData: Array }); // Получаем данные через пропсы
@@ -55,32 +55,39 @@ watch([selectedPeriod, selectedColumns], () => {
             <button @click="selectedPeriod = 'last_year'">Прошлый год</button>
             <button @click="selectedPeriod = 'all'">Весь период</button>
         </div>
-        
-        <!-- Секция выбора столбцов и графика-->
-        <div>
-            <!-- Перебор доступных столбцов -->
-            <div class="column-selector">
+
+        <!-- Перебор доступных столбцов -->
+        <div class="column-selector">
                 <label v-for="column in availableColumns" :key="column">
                     <input type="checkbox" v-model="selectedColumns" :value="column" />
                     {{ column }}
                 </label>
             </div>
-            
+        
+        <!-- Секция выбора столбцов и графика-->
+        <div class="chart-section">
+            <h2 class="chart-title">Главный график</h2>
             <!-- График -->
             <div ref="chartRef" style="width: 100%; height: 400px;"></div>
         </div>
 
         <!-- Диаграмма сводки (min, avg, max) -->
-        <div ref="summaryChartRef" style="width: 100%; height: 400px; margin-top: 20px;"></div>
+        <div class="chart-section">
+            <h2 class="chart-title">Сводные данные</h2>
+            <div ref="summaryChartRef" style="width: 100%; height: 400px;"></div>
+        </div>
 
         <!-- Диаграмма процентных изменений -->
-        <div ref="percentChangeChartRef" style="width: 100%; height: 400px; margin-top: 20px;"></div>
+        <div class="chart-section">
+            <h2 class="chart-title">График в процентном изменении</h2>
+            <div ref="percentChangeChartRef" style="width: 100%; height: 400px;"></div>
+        </div>
     </div>
 </template>
 
 <style scoped>
-/* Стили для фильтров */
-.filters {
+/* Общие стили для контейнеров */
+.filters, .column-selector {
     margin-bottom: 20px;
     display: flex;
     flex-wrap: wrap;
@@ -108,15 +115,7 @@ button:hover {
     border-color: var(--primary-color);
 }
 
-/* Секция выбора столбцов */
-.column-selector {
-    margin-bottom: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-}
-
+/* Стили для чекбоксов */
 .column-selector label {
     cursor: pointer;
     color: var(--text-color);
@@ -126,20 +125,27 @@ button:hover {
     gap: 5px;
 }
 
-/* Стили для чекбоксов */
+/* Стили для лейблов чекбоксов */
 input[type="checkbox"] {
     accent-color: var(--primary-color);
     width: 16px;
     height: 16px;
 }
 
-/* График */
-.chart-container {
-    width: 100%;
-    height: 400px;
-    border: 2px solid var(--primary-color);
+/* Стили для секций с графиками */
+.chart-section {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid var(--primary-color);
     border-radius: 10px;
     background: var(--background-color);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Стили для заголовков графиков */
+.chart-title {
+    text-align: center;
+    color: var(--text-color);
+    margin-bottom: 20px;
+    font-size: 1.5em;
 }
 </style>

@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import FileUploader from "@/components/FileUploader.vue";
-import TableChart from "@/components/TableChart.vue";
+import TableChart from "@/components/TableCharts.vue";
 
 const csvData = ref([]); // Реактивные данные для графика
 
